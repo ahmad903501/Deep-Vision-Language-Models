@@ -45,7 +45,7 @@ This project implements the coding section of DVLM PA1 in a modular, testable wa
 
    !git clone https://github.com/<your-username>/<your-repo>.git
    %cd <your-repo>
-   !pip install -r requirements.txt
+   !pip install -r requirements-kaggle.txt
 
 4. Train with Kaggle config:
 
@@ -56,6 +56,17 @@ This project implements the coding section of DVLM PA1 in a modular, testable wa
    !python eval.py --config configs/kaggle.yaml --checkpoint /kaggle/working/artifacts/ddpm_mnist_kaggle/<run_stamp>/checkpoints/final.pt --num-samples 10000
 
 6. Download outputs from /kaggle/working/artifacts.
+
+### Accelerator compatibility notes
+
+- If you use 2x T4, the current setup works directly.
+- If you use P100, do not reinstall torch from requirements.txt. That can replace Kaggle's compatible build.
+- If P100 still fails after avoiding torch reinstall, install a CUDA 11.8 build explicitly:
+
+   !pip uninstall -y torch torchvision torchaudio
+   !pip install --index-url https://download.pytorch.org/whl/cu118 torch==2.3.1 torchvision==0.18.1
+
+- TPU is not supported by this PyTorch DDPM code path without a separate torch-xla adaptation.
 
 ### Option B: Private repo
 
