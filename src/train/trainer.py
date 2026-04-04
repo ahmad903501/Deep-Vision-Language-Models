@@ -6,7 +6,6 @@ from typing import Dict, List
 
 import torch
 import torch.nn.functional as F
-from torch.cuda.amp import GradScaler, autocast
 from tqdm import tqdm
 
 from src.diffusion.ddpm import ancestral_sample
@@ -46,9 +45,11 @@ class DDPMTrainer:
         self.device = device
         self.run_dir = run_dir
         self.image_shape = image_shape
+        self.amp_enabled = config.training.amp and device.type == "cuda"
+        self.amp_device_type = "cuda" if device.type == "cuda" else "cpu"
 
         self.optimizer = self._build_optimizer()
-        self.scaler = GradScaler(enabled=config.training.amp)
+        self.scaler = torch.amp.GradScaler(self.amp_device_type, enabled=self.amp_enabled)
         self.losses: List[float] = []
 
         ensure_dir(self.run_dir / "checkpoints")
@@ -137,7 +138,7 @@ class DDPMTrainer:
                 x0 = x0.to(self.device)
                 t = sample_timesteps(x0.size(0), self.state, self.device)
 
-                with autocast(enabled=self.config.training.amp):
+                with torch.amp.autocast(self.amp_device_type, enabled=self.amp_enabled):
                     xt, eps = q_sample(x0, t, self.state)
                     eps_hat = self.model(xt, t)
                     loss = F.mse_loss(eps_hat, eps)
