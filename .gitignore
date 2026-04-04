@@ -23,7 +23,7 @@ dist/
 
 # Project runtime outputs
 artifacts/
-data/
+/data/
 
 # OS/editor noise
 .DS_Store
