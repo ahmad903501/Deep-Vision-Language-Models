@@ -130,7 +130,7 @@ class DDPMTrainer:
         final_ckpt = self.run_dir / "checkpoints" / "final.pt"
 
         for epoch in range(self.config.training.num_epochs):
-            pbar = tqdm(self.train_loader, desc=f"Epoch {epoch + 1}", leave=False)
+            pbar = tqdm(self.train_loader, desc=f"Epoch {epoch + 1}", leave=True)
             for x0, _ in pbar:
                 if step >= self.config.training.max_steps:
                     break
