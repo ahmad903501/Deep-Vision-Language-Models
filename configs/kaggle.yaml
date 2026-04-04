@@ -1,0 +1,55 @@
+experiment:
+  name: ddpm_mnist_kaggle
+  output_root: /kaggle/working/artifacts
+  seed: 42
+
+data:
+  dataset: MNIST
+  data_root: /kaggle/working/data
+  image_size: 28
+  batch_size: 128
+  num_workers: 2
+  pin_memory: true
+  drop_last: true
+  scale_to_minus_one_to_one: true
+
+schedule:
+  num_timesteps: 1000
+  schedule_type: linear
+  beta_min: 0.0001
+  beta_max: 0.02
+  indexing: one_based
+
+model:
+  in_channels: 1
+  base_channels: 32
+  channel_multipliers: [1, 2, 4]
+  num_res_blocks: 1
+  time_embed_dim: 128
+  use_attention: false
+  dropout: 0.0
+
+training:
+  optimizer: adamw
+  learning_rate: 0.0002
+  weight_decay: 0.0
+  num_epochs: 20
+  max_steps: 20000
+  grad_clip_norm: 1.0
+  log_every: 100
+  sample_every: 1000
+  save_every: 2000
+  amp: true
+  overfit_subset_size: 256
+
+sampling:
+  num_samples: 64
+  save_trajectory_steps: [1000, 750, 500, 250, 1]
+
+ablation:
+  enabled: false
+  compare_schedule: cosine
+
+extension:
+  enabled: false
+  type: ddim
