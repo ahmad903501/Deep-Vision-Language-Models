@@ -34,6 +34,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _normalize_state_dict(state_dict: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
+    if any(key.startswith("module.") for key in state_dict.keys()):
+        return {key.replace("module.", "", 1): value for key, value in state_dict.items()}
+    return state_dict
+
+
 def _generate_samples(
     model: torch.nn.Module,
     state,
@@ -91,7 +97,7 @@ def main() -> None:
     ).to(device)
 
     checkpoint = torch.load(args.checkpoint, map_location=device)
-    model.load_state_dict(checkpoint["model"])
+    model.load_state_dict(_normalize_state_dict(checkpoint["model"]))
     model.eval()
 
     generated = _generate_samples(

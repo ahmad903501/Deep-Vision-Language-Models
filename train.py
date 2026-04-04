@@ -71,6 +71,12 @@ def main() -> None:
         dropout=config.model.dropout,
     ).to(device)
 
+    if device.type == "cuda":
+        gpu_count = torch.cuda.device_count()
+        if gpu_count > 1:
+            print(f"Using DataParallel across {gpu_count} GPUs")
+            model = torch.nn.DataParallel(model)
+
     trainer = DDPMTrainer(
         model=model,
         state=schedule_state,

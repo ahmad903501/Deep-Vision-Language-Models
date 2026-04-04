@@ -73,13 +73,18 @@ class DDPMTrainer:
     def _save_checkpoint(self, step: int) -> Path:
         ckpt_path = self.run_dir / "checkpoints" / f"step_{step:07d}.pt"
         payload = {
-            "model": self.model.state_dict(),
+            "model": self._model_state_dict(),
             "optimizer": self.optimizer.state_dict(),
             "step": step,
             "config": self.config.to_dict(),
         }
         torch.save(payload, ckpt_path)
         return ckpt_path
+
+    def _model_state_dict(self) -> Dict[str, torch.Tensor]:
+        if isinstance(self.model, torch.nn.DataParallel):
+            return self.model.module.state_dict()
+        return self.model.state_dict()
 
     def run_overfit_gate(self, steps: int = 600) -> float:
         self.model.train()
@@ -180,7 +185,7 @@ class DDPMTrainer:
 
         torch.save(
             {
-                "model": self.model.state_dict(),
+                "model": self._model_state_dict(),
                 "optimizer": self.optimizer.state_dict(),
                 "step": step,
                 "config": self.config.to_dict(),
