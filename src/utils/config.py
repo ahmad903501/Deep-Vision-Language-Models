@@ -94,10 +94,41 @@ class AppConfig:
         return asdict(self)
 
 
+def _resolve_config_path(config_path: str | Path) -> Path:
+    raw_path = Path(config_path)
+    cwd = Path.cwd()
+    repo_root = Path(__file__).resolve().parents[2]
+
+    candidates = [
+        raw_path,
+        cwd / raw_path,
+        cwd / "configs" / raw_path.name,
+        repo_root / raw_path,
+        repo_root / "configs" / raw_path.name,
+    ]
+
+    checked = []
+    for candidate in candidates:
+        resolved = candidate.resolve(strict=False)
+        checked.append(str(resolved))
+        if candidate.exists() and candidate.is_file():
+            return candidate
+
+    checked_str = "\n".join(f"- {item}" for item in checked)
+    raise FileNotFoundError(
+        "Config file not found. Checked:\n"
+        f"{checked_str}\n"
+        "Tip: pass --config configs/kaggle.yaml (or default.yaml)."
+    )
+
+
 def load_config(config_path: str | Path) -> AppConfig:
-    path = Path(config_path)
+    path = _resolve_config_path(config_path)
     with path.open("r", encoding="utf-8") as handle:
         raw = yaml.safe_load(handle)
+
+    if not isinstance(raw, dict):
+        raise ValueError(f"Config file is empty or invalid YAML: {path}")
 
     return AppConfig(
         experiment=ExperimentConfig(**raw["experiment"]),
